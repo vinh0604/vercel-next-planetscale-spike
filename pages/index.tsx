@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import mermaid from "mermaid";
 import Layout from "../components/Layout";
@@ -12,6 +12,12 @@ const Editor = ({ code, error }: Props) => {
   const mermaidId = `mermaid${uuidv4()}`;
   const [inputCode, setInputCode] = useState(code);
   const [diagram, setDiagram] = useState("");
+  
+  // TODO: check why addHtmlLabel was not included in the webpack build output for mermaid
+  // below is a temp work-around
+  if (typeof window !== "undefined") {
+    (window as any).addHtmlLabel = require('dagre-d3/lib/label/add-html-label');
+  }
 
   useEffect(() => {
     const timeOutId = setTimeout(() => {
