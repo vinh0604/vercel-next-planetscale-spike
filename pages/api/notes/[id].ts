@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Note, PrismaClient } from "@prisma/client";
+import { NotesDao } from "../../../dao/notes_dao";
 
-const prisma = new PrismaClient();
+const notesDao = new NotesDao();
 
 export default async function noteHandler(
   req: NextApiRequest,
@@ -23,7 +23,7 @@ export default async function noteHandler(
 }
 
 async function getNoteHandler(req: NextApiRequest, res: NextApiResponse) {
-  const note = await findNote(req.query.id as string);
+  const note = await notesDao.findById(req.query.id as string);
   if (note != undefined) {
     return res.status(200).json(note);
   } else {
@@ -34,7 +34,7 @@ async function getNoteHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function updateNoteHandler(req: NextApiRequest, res: NextApiResponse) {
-  const note = await findNote(req.query.id as string);
+  const note = await notesDao.findById(req.query.id as string);
   if (note == undefined) {
     return res
       .status(404)
@@ -42,28 +42,19 @@ async function updateNoteHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    await prisma.note.update({
-      where: {
-        id: note.id,
-      },
-      data: {
-        code: req.body.code,
-      },
-    });
-    res.status(204);
+    await notesDao.update(note.id, req.body.code);
+    return res.status(204).send();
   } catch (err) {
     console.error(`Note ${req.query.id} failed to update.`, err);
-    return res
-      .status(422)
-      .json({
-        code: "FAILED_OPERATION",
-        message: "Cannot update content for Note.",
-      });
+    return res.status(422).json({
+      code: "FAILED_OPERATION",
+      message: "Cannot update content for Note.",
+    });
   }
 }
 
 async function deleteNoteHandler(req: NextApiRequest, res: NextApiResponse) {
-  const note = await findNote(req.query.id as string);
+  const note = await notesDao.findById(req.query.id as string);
   if (note == undefined) {
     return res
       .status(404)
@@ -71,29 +62,12 @@ async function deleteNoteHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    await prisma.note.delete({
-      where: {
-        id: note.id,
-      },
-    });
-    res.status(204);
+    await notesDao.delete(note.id);
+    return res.status(204).send();
   } catch (err) {
     console.error(`Note ${req.query.id} failed to delete.`, err);
     return res
       .status(422)
       .json({ code: "FAILED_OPERATION", message: "Cannot delete Note." });
-  }
-}
-
-async function findNote(id: string): Promise<Note | undefined> {
-  try {
-    return await prisma.note.findFirstOrThrow({
-      where: {
-        id,
-      },
-    });
-  } catch (err) {
-    console.error(`Note ${id} not found`, err);
-    return undefined;
   }
 }
