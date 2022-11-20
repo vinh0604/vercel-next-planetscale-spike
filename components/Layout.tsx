@@ -15,16 +15,16 @@ const Layout = ({ children, title = 'This is the default title' }: Props) => (
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
     <header>
-      <nav>
-        <Link href="/">Home</Link>
+      <nav className="flex">
+        <Link href="/">
+          <img className='object-scale-down h-32 w-32' alt='Home' src='/static/marpad.png'/>
+        </Link>
       </nav>
     </header>
     <main>
       {children}
     </main>
-    <footer>
-      <hr />
-    </footer>
+    <footer></footer>
   </div>
 )
 

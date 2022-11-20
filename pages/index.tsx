@@ -15,9 +15,9 @@ const Editor = ({ code, error }: Props) => {
   
   // TODO: check why addHtmlLabel was not included in the webpack build output for mermaid
   // below is a temp work-around
-  if (typeof window !== "undefined") {
-    (window as any).addHtmlLabel = require('dagre-d3/lib/label/add-html-label');
-  }
+  // if (typeof window !== "undefined") {
+  //   (window as any).addHtmlLabel = require('dagre-d3/lib/label/add-html-label');
+  // }
 
   useEffect(() => {
     const timeOutId = setTimeout(() => {
@@ -62,8 +62,10 @@ const EditorPage = () => {
   B-->D;
   C-->D;`;
   return (
-    <Layout title="Home | Next.js + TypeScript Example">
+    <Layout title="MarPad">
       <Editor code={code} />
+      <hr className="mt-0.5"/>
+      <button className="inline-block mt-1 px-6 py-2.5 bg-blue-400 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-500 hover:shadow-lg focus:bg-blue-500 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-600 active:shadow-lg transition duration-150 ease-in-out">Share</button>
     </Layout>
   );
 };
