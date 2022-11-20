@@ -43,7 +43,7 @@ async function updateNoteHandler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     await notesDao.update(note.id, req.body.code);
-    return res.status(204).send();
+    return res.status(204).send(null);
   } catch (err) {
     console.error(`Note ${req.query.id} failed to update.`, err);
     return res.status(422).json({
@@ -63,7 +63,7 @@ async function deleteNoteHandler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     await notesDao.delete(note.id);
-    return res.status(204).send();
+    return res.status(204).send(null);
   } catch (err) {
     console.error(`Note ${req.query.id} failed to delete.`, err);
     return res
