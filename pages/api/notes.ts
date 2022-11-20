@@ -1,17 +1,24 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { PrismaClient } from '@prisma/client'
 
-export default function userHandler(req: NextApiRequest, res: NextApiResponse) {
+const prisma = new PrismaClient()
+
+export default async function notesHandler(req: NextApiRequest, res: NextApiResponse) {
   const {
+    body: { code },
     method,
   } = req
 
-  switch (req.method) {
+  switch (method) {
     case 'POST':
-      // Create new mermaid note
-      res.status(201).json({})
-      break
+      const note = await prisma.note.create({
+        data: {
+          code
+        }
+      })
+      return res.status(201).json(note)
     default:
       res.setHeader('Allow', ['POST'])
-      res.status(405).end(`Method ${method} Not Allowed`)
+      return res.status(405).end(`Method ${method} Not Allowed`)
   }
 }
