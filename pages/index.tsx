@@ -72,18 +72,42 @@ const Editor = ({ code, setCode, error }: EditorProps) => {
   );
 };
 
+const getShareUrl = (noteId: string): string => {
+  if (noteId) {
+    if (typeof window !== "undefined") {
+      return window.location.origin + `/?note=${noteId}`;
+    } else {
+      return process.env.NEXT_PUBLIC_BASE_URL + `/?note=${noteId}`;
+    }
+  }
+  return '';
+}
+
 const EditorPage = ({ noteId: _noteId, code: _code, error }: PageProps) => {
   const [noteCode, setNoteCode] = useState(_code);
   const [noteId, setNoteId] = useState(_noteId);
+  const [shareUrl, setShareUrl] = useState(getShareUrl(_noteId));
   const router = useRouter();
+
+  const updateNote = async () => {
+    if (noteId) {
+      const options = {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: noteCode }),
+      };
+  
+      await fetch(`/api/notes/${noteId}`, options);
+    }
+  }
 
   const sharePost = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const note = {
-      code: noteCode,
-    };
     if (noteId == undefined) {
+      const note = { code: noteCode };
       const options = {
         method: "POST",
         headers: {
@@ -98,30 +122,50 @@ const EditorPage = ({ noteId: _noteId, code: _code, error }: PageProps) => {
         setNoteId(_noteId);
         router.replace({
           query: { ...router.query, note: _noteId }
-        })
+        });
+        setShareUrl(getShareUrl(_noteId));
       }
-    } else {
-      const options = {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(note),
-      };
-
-      await fetch(`/api/notes/${noteId}`, options);
     }
   };
+
+  const copyToClipboard = () => {
+    if (typeof window !== "undefined" && window.isSecureContext && shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+    }
+  }
+
+  useEffect(() => {
+    if (noteId) {
+      const timeOutId = setTimeout(async () => {
+        await updateNote();
+      }, 500);
+  
+      return () => clearTimeout(timeOutId);
+    }
+  }, [noteCode]); 
 
   return (
     <Layout title="MarPad">
       <Editor code={noteCode} setCode={setNoteCode} error={error} />
       <hr className="mt-0.5" />
-      <form onSubmit={sharePost}>
-        <button className="inline-block mt-1 px-6 py-2.5 bg-blue-400 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-500 hover:shadow-lg focus:bg-blue-500 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-600 active:shadow-lg transition duration-150 ease-in-out">
+      <form onSubmit={sharePost} className={(shareUrl ? 'hidden' : 'block')}>
+        <button className="inline-block mt-2 px-6 py-2.5 bg-blue-400 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-500 hover:shadow-lg focus:bg-blue-500 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-600 active:shadow-lg transition duration-150 ease-in-out">
           Share
         </button>
       </form>
+      <div className={"flex lg:w-1/2 w-full mt-2 " + (shareUrl ? 'visible' : 'invisible')}>
+        <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300">
+          &#128279;
+        </span>
+        <input type="text" 
+                className="rounded-none bg-gray-50 border border-gray-300 text-base font-normal text-gray-500 block flex-1 min-w-0 w-full text-sm p-2.5" 
+                readOnly={true} 
+                value={shareUrl} />
+        <button className="flex-2 px-3 rounded-r-md text-lg text-white bg-sky-400 focus:bg-sky-500 hover:bg-sky-500"
+                onClick={copyToClipboard}>
+          &#x2398;
+        </button>
+      </div>
     </Layout>
   );
 };
